@@ -1,10 +1,10 @@
 # TemporalResampler Plugin
 
-[![](https://img.shields.io/github/downloads/shmkle/TemporalResampler/total.svg)](https://github.com/shmkle/TemporalResampler/releases/latest)
+*Changed to not bug with Adaptive Radial Follow, possibly at smoothness' expense. Not meant for release on an OTD plugin repository. Replace the dll with the one seen here if you want to use this.*
 
 *Meant for [OpenTabletDriver](https://github.com/OpenTabletDriver/OpenTabletDriver)*
 
-*Support me [here](https://www.patreon.com/Shmekle)*
+*Support Shmekle [here](https://www.patreon.com/Shmekle)*
 
 ### The purpose:
 Improves cursor clarity for higher refresh rate monitors with minimal latency. It is very effective if your tablet reports at 133rps (ctl-472, ctl-672) and your monitor updates at 240hz.
