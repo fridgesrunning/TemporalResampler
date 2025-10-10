@@ -1,6 +1,6 @@
 # TemporalResampler Plugin
 
-*Changed to bug less with Adaptive Radial Follow (acceptably small with a smooth cursortrail, imperceptible with a normal cursor), possibly at smoothness' expense. Not meant for release on an OTD plugin repository. Replace the dll with the one seen here if you want to use this.*
+*Changed to bug less with Adaptive Radial Follow (acceptably small with a smooth cursortrail, imperceptible with a normal cursor), possibly at smoothness' expense. Not meant for release on an easily accessible OTD plugin repository.
 
 *Meant for [OpenTabletDriver](https://github.com/OpenTabletDriver/OpenTabletDriver)*
 
