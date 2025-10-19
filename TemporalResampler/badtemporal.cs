@@ -266,6 +266,7 @@ public class TemporalResampler : AsyncPositionedPipelineElement<IDeviceReport>
         bP = predict;
 
         evalCount = 0;
+        tmax = 0;
 
         // wire consume state to update state
         if (extraFrames)
@@ -294,7 +295,7 @@ public class TemporalResampler : AsyncPositionedPipelineElement<IDeviceReport>
     private static readonly float dt = 1f / steps;
     private float[] arcArr = new float[steps];
     private float arcTar = 0;
-    private Vector2 _v1, _v2, _v3;
+    private Vector2 _v1, _v2, _v3, savePoint;
     private int _floor;
     Vector2 Trajectory(float t, Vector2 v3, Vector2 v2, Vector2 v1)
     {
@@ -345,11 +346,16 @@ public class TemporalResampler : AsyncPositionedPipelineElement<IDeviceReport>
         
         if (evalCount < 1)
         {
-            if (decision == 1f && trueaccel <= _vDiv)
-            decision = 0f;
-
+            if (decision == 1f && ((trueaccel <= _vDiv) || (Vector2.Dot(accel, accel) < -0.001f)))
+            {
+            decision = 2;
+            tmax = 1f;
+            }
             if (trueaccel > _vDiv)
-            decision = 1f;
+            {
+            decision = 1;
+            tmax = 1;
+            }
 
             evalCount = 1;
 
@@ -357,7 +363,22 @@ public class TemporalResampler : AsyncPositionedPipelineElement<IDeviceReport>
             Console.WriteLine(trueaccel);
         }
 
-        return Vector2.Lerp(v3 + t * vel + 0.5f * t * t * accel, Vector2.Lerp(Vector2.Lerp(v3, v2, t / 3), Vector2.Lerp(v2, v1, t / 6), t / 3), decision);
+       switch (decision)
+       {
+            case 2:
+            decision = 0;
+            return Vector2.Lerp(savePoint, Vector2.Lerp(v2, v1, 0.5f), t / 3);
+            break;
+            case 1:
+            t = Math.Max(t, tmax);
+            savePoint = Vector2.Lerp(v2, v1, t / 3);
+            return savePoint;
+            break;
+            default:
+            t = Math.Max(t, tmax);
+            return v3 + t * vel + 0.5f * t * t * accel;
+            break;
+       }
     }
 
     //values
@@ -366,7 +387,7 @@ public class TemporalResampler : AsyncPositionedPipelineElement<IDeviceReport>
     object[][] stablePoints = new object[3][];
     Vector2 bE, bP, sC, _aE;
     TimeSpan latestReport = TimeSpan.Zero;
-    float sPressure, decision;
+    float sPressure, decision, tmax;
     float rpsAvg = 200f, tOffset;
     HPETDeltaStopwatch reportStopwatch = new HPETDeltaStopwatch(false);
     HPETDeltaStopwatch runningStopwatch = new HPETDeltaStopwatch(true);
