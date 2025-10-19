@@ -367,7 +367,7 @@ public class TemporalResampler : AsyncPositionedPipelineElement<IDeviceReport>
        {
             case 2:
             decision = 0;
-            return Vector2.Lerp(savePoint, Vector2.Lerp(v2, v1, 0.5f), t / 3);
+            return Vector2.Lerp(savePoint, Vector2.Lerp(v2, v1, t / 6), t / 3);
             break;
             case 1:
             t = Math.Max(t, tmax);
