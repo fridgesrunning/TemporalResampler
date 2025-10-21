@@ -12,7 +12,7 @@ public class TemporalResampler : AsyncPositionedPipelineElement<IDeviceReport>
     {
     }
 
-    public override PipelinePosition Position => PipelinePosition.Raw;
+    public override PipelinePosition Position => PipelinePosition.PostTransform;
 
     [Property("Something Divisor"), DefaultPropertyValue(1000f), ToolTip
     (
