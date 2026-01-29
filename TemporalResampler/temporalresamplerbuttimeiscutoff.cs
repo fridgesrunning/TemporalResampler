@@ -98,7 +98,7 @@ public class temporalresamplerbuttimeiscutoff : AsyncPositionedPipelineElement<I
 
         // time
         float t = 1 + (float)(runningStopwatch.Elapsed - latestReport).TotalSeconds * rpsAvg;
-        t = Math.Clamp(t, 0, 2);
+        t = Math.Clamp(t, 1, 2);
 
         // interp position
         report.Position = Trajectory
