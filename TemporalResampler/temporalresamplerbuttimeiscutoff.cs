@@ -5,27 +5,14 @@ using OpenTabletDriver.Plugin.Tablet;
 using OpenTabletDriver.Plugin.Timing;
 using System.Numerics;
 
-[PluginName("Temporal Resampler"), DeviceHub()]
-public class TemporalResampler : AsyncPositionedPipelineElement<IDeviceReport>
+[PluginName("temporalresamplerbuttimeiscutoff"), DeviceHub()]
+public class temporalresamplerbuttimeiscutoff : AsyncPositionedPipelineElement<IDeviceReport>
 {
-    public TemporalResampler() : base()
+    public temporalresamplerbuttimeiscutoff() : base()
     {
     }
 
-    public override PipelinePosition Position => PipelinePosition.PostTransform;
-
-    [Property("Something Divisor"), DefaultPropertyValue(1000f), ToolTip
-    (
-        "Enable the bottom checkbox and do the same thing that you do in AdaptiveBezierInterpolator.\n" +
-        "This isn't really velocity, but some other metric."
-    )]
-
-    public float vDiv
-    {
-        set => _vDiv = Math.Clamp(value, 0, 1000000);
-        get => _vDiv;
-    }
-    public float _vDiv;
+    public override PipelinePosition Position => PipelinePosition.Raw;
 
     [Property("Prediction Ratio"), DefaultPropertyValue(0.5f), ToolTip
     (
@@ -104,14 +91,6 @@ public class TemporalResampler : AsyncPositionedPipelineElement<IDeviceReport>
     )]
     public bool loggingEnabled { set; get; }
 
-    [Property("Bottom Checkbox"), DefaultPropertyValue(false), ToolTip
-    (
-        "Default: False\n\n" +
-
-        "Logs some sort of acceleration metric."
-    )]
-    public bool cLog { set; get; }
-
     protected override void UpdateState()
     {
         if (State is not IAbsolutePositionReport report || !PenIsInRange())
@@ -119,7 +98,7 @@ public class TemporalResampler : AsyncPositionedPipelineElement<IDeviceReport>
 
         // time
         float t = 1 + (float)(runningStopwatch.Elapsed - latestReport).TotalSeconds * rpsAvg;
-        t = Math.Clamp(t, 0, 3);
+        t = Math.Clamp(t, 0, 2);
 
         // interp position
         report.Position = Trajectory
@@ -265,9 +244,6 @@ public class TemporalResampler : AsyncPositionedPipelineElement<IDeviceReport>
 
         bP = predict;
 
-        evalCount = 0;
-        tmax = 0;
-
         // wire consume state to update state
         if (extraFrames)
             UpdateState();
@@ -295,14 +271,13 @@ public class TemporalResampler : AsyncPositionedPipelineElement<IDeviceReport>
     private static readonly float dt = 1f / steps;
     private float[] arcArr = new float[steps];
     private float arcTar = 0;
-    private Vector2 _v1, _v2, _v3, savePoint;
+    private Vector2 _v1, _v2, _v3;
     private int _floor;
     Vector2 Trajectory(float t, Vector2 v3, Vector2 v2, Vector2 v1)
     {
         var mid = 0.5f * (v1 + v3);
         var accel = 2f * (mid - v2);
         var vel = 2f * v2 - v3 - mid;
-        var trueaccel = Math.Sqrt(Math.Pow(accel.X, 2) + Math.Pow(accel.Y, 2));
         
         // if there is acceleration, then start spacing points evenly using integrals
         if (Vector2.Dot(accel, accel) > 0.001f)
@@ -334,51 +309,9 @@ public class TemporalResampler : AsyncPositionedPipelineElement<IDeviceReport>
                 t = _t * dt + floor;
                 break;
             }
-
-
-
-
-
-
-
-             
-        }
-        
-        if (evalCount < 1)
-        {
-            if (decision == 1f && ((trueaccel <= _vDiv) || (Vector2.Dot(accel, accel) < -0.001f)))
-            {
-            decision = 2;
-            tmax = 1f;
-            }
-            if (trueaccel > _vDiv)
-            {
-            decision = 1;
-            tmax = 1;
-            }
-
-            evalCount = 1;
-
-            if (cLog)
-            Console.WriteLine(trueaccel);
         }
 
-       switch (decision)
-       {
-            case 2:
-            decision = 0;
-            return Vector2.Lerp(savePoint, Vector2.Lerp(v2, v1, t / 6), t / 3);
-            break;
-            case 1:
-            t = Math.Max(t, tmax);
-            savePoint = Vector2.Lerp(v2, v1, t / 3);
-            return savePoint;
-            break;
-            default:
-            t = Math.Max(t, tmax);
-            return v3 + t * vel + 0.5f * t * t * accel;
-            break;
-       }
+        return v3 + t * vel + 0.5f * t * t * accel;
     }
 
     //values
@@ -387,12 +320,12 @@ public class TemporalResampler : AsyncPositionedPipelineElement<IDeviceReport>
     object[][] stablePoints = new object[3][];
     Vector2 bE, bP, sC, _aE;
     TimeSpan latestReport = TimeSpan.Zero;
-    float sPressure, decision, tmax;
+    float sPressure;
     float rpsAvg = 200f, tOffset;
     HPETDeltaStopwatch reportStopwatch = new HPETDeltaStopwatch(false);
     HPETDeltaStopwatch runningStopwatch = new HPETDeltaStopwatch(true);
     HPETDeltaStopwatch logStopwatch = new HPETDeltaStopwatch(true);
-    double logDistanceAvg, logSpeedAvg, logReportAvg, logErrorAvg, evalCount;
+    double logDistanceAvg, logSpeedAvg, logReportAvg, logErrorAvg;
     int logCount = 30, logReportCount;
 
     bool devMode = false;

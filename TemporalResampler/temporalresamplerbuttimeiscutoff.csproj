@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>Temporal_Resampler_1._1._0</RootNamespace>
+    <RootNamespace>temporalresamplerbuttimeiscutoff_1._1._0</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
